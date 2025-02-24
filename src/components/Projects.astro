@@ -1,8 +1,9 @@
 ---
-import Work4 from "../assets/letsgoAV1.mp4";
+import Work4Video from "../assets/letsgoAV1.mp4";
 import Work1 from "../assets/work-1.png";
 import Work2 from "../assets/work-2.png";
 import Work3 from "../assets/work-3.png";
+import Work4 from "../assets/work-4.png";
 import Work5 from "../assets/work-5.png";
 ---
 
@@ -15,13 +16,24 @@ import Work5 from "../assets/work-5.png";
   </h2>
   <ul class="projects">
     <li class="card">
-      <div class="card-video">
-        <video muted autoplay width="550" preload="auto">
-          <source src={Work4} type="video/mp4" />
-        </video>
-      </div>
+      <a href="https://planletsgo.com/">
+        <div class="card-video">
+          <video
+            muted
+            autoplay
+            width="550"
+            preload="metadata"
+            poster={Work4.src}
+          >
+            <source
+              src={Work4Video}
+              type="video/mp4"
+            />
+          </video>
+        </div>
+      </a>
       <h3 class="heading-3">
-        <a href="https://letsgocompany.com/dure">LetsGo Company </a>
+        <a href="https://letsgocompany.com/">LetsGo Company </a>
         ||
         <a href="https://planletsgo.com/"> Plan LetsGo</a>
       </h3>
@@ -34,9 +46,11 @@ import Work5 from "../assets/work-5.png";
       </ul>
     </li>
     <li class="card">
-      <figure class="card-picture">
-        <img src={Work3.src} alt="Beam Suntory" />
-      </figure>
+      <a href="https://www.suntoryglobalspirits.com/">
+        <figure class="card-picture">
+          <img src={Work3.src} alt="Beam Suntory" />
+        </figure>
+      </a>
       <h3 class="heading-3">
         <a href="https://www.suntoryglobalspirits.com/">Beam Suntory</a>
       </h3>
@@ -47,11 +61,13 @@ import Work5 from "../assets/work-5.png";
       </ul>
     </li>
     <li class="card">
-      <figure class="card-picture">
-        <img src={Work5.src} alt="Durex" />
-      </figure>
+      <a href="https://durex.es/">
+        <figure class="card-picture">
+          <img src={Work5.src} alt="Durex" />
+        </figure>
+      </a>
       <h3 class="heading-3">
-        <a href="https://letsgocompany.com/">Durex</a>
+        <a href="https://durex.es/">Durex</a>
       </h3>
       <ul class="card-skills">
         <li class="card-tag">Shopify</li>
@@ -60,9 +76,11 @@ import Work5 from "../assets/work-5.png";
       </ul>
     </li>
     <li class="card">
-      <figure class="card-picture">
-        <img src={Work2.src} alt="Libros del cole" />
-      </figure>
+      <a href="https://librosdelcole.es/">
+        <figure class="card-picture">
+          <img src={Work2.src} alt="Libros del cole" />
+        </figure>
+      </a>
       <h3 class="heading-3">
         <a href="https://librosdelcole.es/">Libros del cole</a>
       </h3>
@@ -73,10 +91,14 @@ import Work5 from "../assets/work-5.png";
       </ul>
     </li>
     <li class="card">
-      <figure class="card-picture">
-        <img src={Work1.src} alt="Amazon luggage" />
-      </figure>
-      <h3 class="heading-3"><a href="#">Amazon luggage</a></h3>
+      <a href="https://amazonluggage.com/">
+        <figure class="card-picture">
+          <img src={Work1.src} alt="Amazon luggage" />
+        </figure>
+      </a>
+      <h3 class="heading-3">
+        <a href="https://amazonluggage.com/">Amazon luggage</a>
+      </h3>
       <ul class="card-skills">
         <li class="card-tag">CSS Modules</li>
         <li class="card-tag">NextJs</li>
