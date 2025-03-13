@@ -102,11 +102,13 @@ export class ArkanoidHUD {
   }
 
   /**
-   * Decrementa las vidas en 1
+   * Decrementa las vidas en 1, pero no permite que bajen de 0
    * @returns Vidas restantes
    */
   decrementLives() {
-    this.lives--;
+    if (this.lives > 0) {
+      this.lives--;
+    }
     return this.lives;
   }
 

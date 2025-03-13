@@ -91,6 +91,10 @@ describe('ArkanoidHUD', () => {
     
     expect(hud.decrementLives()).toBe(0);
     expect((hud as unknown as HUDPrivateProps).lives).toBe(0);
+    
+    // Las vidas no deberían bajar de 0
+    expect(hud.decrementLives()).toBe(0);
+    expect((hud as unknown as HUDPrivateProps).lives).toBe(0);
   });
 
   it('debería mostrar un mensaje en el centro del canvas', () => {
