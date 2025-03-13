@@ -60,6 +60,31 @@ import { ArkanoidHUD } from './ArkanoidHUD';
     const ctx = canvas.getContext('2d');
     const leftBtn = document.getElementById('leftBtn');
     const rightBtn = document.getElementById('rightBtn');
+    
+    // Asegurar que el canvas tenga las dimensiones correctas
+    function updateCanvasDimensions() {
+      // Obtener el tamaño del contenedor padre
+      const container = canvas.parentElement;
+      if (container) {
+        // Ajustar el ancho del canvas al ancho del contenedor (máximo 480px)
+        const containerWidth = container.clientWidth;
+        const scaledWidth = Math.min(containerWidth, 480);
+        
+        // Mantener la proporción altura/ancho
+        const aspectRatio = 640 / 480;
+        
+        // Actualizar dimensiones reales del canvas (no solo CSS)
+        if (canvas.width !== scaledWidth) {
+          canvas.width = scaledWidth;
+          canvas.height = scaledWidth * aspectRatio;
+          return true; // Indica que hubo cambio en las dimensiones
+        }
+      }
+      return false; // No hubo cambio en las dimensiones
+    }
+    
+    // Actualizar dimensiones del canvas antes de inicializar el juego
+    const canvasSizeChanged = updateCanvasDimensions();
 
     // Configuración del juego
     const ballRadius = 10;                // Radio de la pelota
@@ -75,29 +100,36 @@ import { ArkanoidHUD } from './ArkanoidHUD';
     
     // Función para calcular las dimensiones de los ladrillos
     function calculateBrickDimensions() {
-      // Margen horizontal total (izquierda y derecha)
-      const horizontalMargin = 40;
+      // Margen horizontal mínimo (para dejar un pequeño espacio en los bordes)
+      const horizontalMargin = 20;
       
       // Espacio disponible para los ladrillos
       const availableWidth = canvas.width - horizontalMargin;
       
       // Determinar el número de columnas basado en el ancho disponible
-      // Queremos que cada ladrillo tenga un ancho razonable (entre 40 y 70 píxeles)
-      const minBrickWidth = 40;
-      const maxBrickWidth = 70;
+      // Ajustamos el número de columnas según el ancho del canvas
+      if (canvas.width <= 320) {
+        brickColumnCount = 4; // Para pantallas muy pequeñas
+      } else if (canvas.width <= 480) {
+        brickColumnCount = 6; // Para pantallas pequeñas
+      } else if (canvas.width <= 768) {
+        brickColumnCount = 8; // Para pantallas medianas
+      } else {
+        brickColumnCount = 10; // Para pantallas grandes
+      }
       
-      // Calcular cuántas columnas caben con un ancho de ladrillo razonable
-      const maxColumns = Math.floor(availableWidth / (minBrickWidth + brickPadding));
-      const minColumns = Math.ceil(availableWidth / (maxBrickWidth + brickPadding));
+      // Asegurarse de que brickColumnCount sea un número válido
+      brickColumnCount = Math.max(4, brickColumnCount); // Mínimo 4 columnas
       
-      // Elegir un número de columnas entre el mínimo y el máximo
-      brickColumnCount = Math.max(4, Math.min(12, maxColumns));
-      
-      // Calcular el ancho de cada ladrillo basado en el número de columnas
-      brickWidth = (availableWidth - (brickColumnCount - 1) * brickPadding) / brickColumnCount;
+      // Calcular el ancho de cada ladrillo para ocupar todo el espacio disponible
+      // Restamos el espacio total de padding entre ladrillos
+      const totalPaddingWidth = (brickColumnCount - 1) * brickPadding;
+      brickWidth = (availableWidth - totalPaddingWidth) / brickColumnCount;
       
       // Calcular el margen izquierdo para centrar los ladrillos
-      brickOffsetLeft = (canvas.width - (brickColumnCount * (brickWidth + brickPadding) - brickPadding)) / 2;
+      brickOffsetLeft = horizontalMargin / 2;
+      
+      console.log(`Canvas width: ${canvas.width}, Columns: ${brickColumnCount}, Brick width: ${brickWidth}`);
     }
     
     // Calcular las dimensiones iniciales
@@ -116,12 +148,32 @@ import { ArkanoidHUD } from './ArkanoidHUD';
     const hud = new ArkanoidHUD(canvas, ctx);
     const controls = new ArkanoidControls(canvas, leftBtn, rightBtn, paddleWidth);
     
-    // Crear ladrillos
+    // Matriz para almacenar los ladrillos
     const bricks = [];
-    for (let columnIndex = 0; columnIndex < brickColumnCount; columnIndex++) {
-      bricks[columnIndex] = [];
-      for (let rowIndex = 0; rowIndex < brickRowCount; rowIndex++) {
-        bricks[columnIndex][rowIndex] = { x: 0, y: 0, status: 1 }; // status: 1=activo, 0=destruido
+    
+    // Función para inicializar los ladrillos con sus posiciones correctas
+    function initializeBricks() {
+      console.log('Inicializando ladrillos con ancho de canvas:', canvas.width);
+      console.log('Dimensiones de bloques - columnas:', brickColumnCount, 'ancho:', brickWidth);
+      
+      // Limpiar el array de ladrillos si ya existe
+      bricks.length = 0;
+      
+      // Crear la matriz de ladrillos con las dimensiones actuales
+      for (let columnIndex = 0; columnIndex < brickColumnCount; columnIndex++) {
+        bricks[columnIndex] = [];
+        for (let rowIndex = 0; rowIndex < brickRowCount; rowIndex++) {
+          // Calcular la posición de cada ladrillo
+          const brickPositionX = columnIndex * (brickWidth + brickPadding) + brickOffsetLeft;
+          const brickPositionY = rowIndex * (brickHeight + brickPadding) + brickOffsetTop;
+          
+          // Guardar la posición en el objeto del ladrillo
+          bricks[columnIndex][rowIndex] = { 
+            x: brickPositionX, 
+            y: brickPositionY, 
+            status: 1 // status: 1=activo, 0=destruido
+          };
+        }
       }
     }
 
@@ -139,13 +191,7 @@ import { ArkanoidHUD } from './ArkanoidHUD';
       gameOver = false;
       
       // Recrear la matriz de ladrillos con el nuevo número de columnas
-      bricks.length = 0; // Limpiar el array existente
-      for (let columnIndex = 0; columnIndex < brickColumnCount; columnIndex++) {
-        bricks[columnIndex] = [];
-        for (let rowIndex = 0; rowIndex < brickRowCount; rowIndex++) {
-          bricks[columnIndex][rowIndex] = { x: 0, y: 0, status: 1 };
-        }
-      }
+      initializeBricks();
       
       // Reiniciar HUD
       hud.updateScore(0);
@@ -158,32 +204,58 @@ import { ArkanoidHUD } from './ArkanoidHUD';
     canvas.addEventListener('touchstart', handleGameInteraction);
     
     // Evento para recalcular dimensiones cuando cambia el tamaño de la ventana
-    window.addEventListener('resize', handleResize);
+    window.addEventListener('resize', () => {
+      // Usar requestAnimationFrame para asegurarnos de que el resize se completa primero
+      requestAnimationFrame(handleResize);
+    });
+    
+    // También manejar cambios de orientación del dispositivo
+    window.addEventListener('orientationchange', () => {
+      // Esperar un poco más en cambios de orientación
+      setTimeout(handleResize, 200);
+    });
     
     // Función para manejar el cambio de tamaño de la ventana
     function handleResize() {
-      // Recalcular las dimensiones de los ladrillos
-      calculateBrickDimensions();
+      // Actualizar dimensiones del canvas
+      const canvasSizeChanged = updateCanvasDimensions();
       
-      // Si el juego está en curso, actualizar la posición de los ladrillos
-      if (gameStarted && !gameOver) {
-        // Actualizar posiciones de los ladrillos existentes
-        for (let columnIndex = 0; columnIndex < brickColumnCount; columnIndex++) {
-          for (let rowIndex = 0; rowIndex < brickRowCount; rowIndex++) {
-            if (bricks[columnIndex] && bricks[columnIndex][rowIndex]) {
-              const brickPositionX = columnIndex * (brickWidth + brickPadding) + brickOffsetLeft;
-              const brickPositionY = rowIndex * (brickHeight + brickPadding) + brickOffsetTop;
-              bricks[columnIndex][rowIndex].x = brickPositionX;
-              bricks[columnIndex][rowIndex].y = brickPositionY;
-            }
-          }
-        }
+      // Solo recalcular y reinicializar si realmente cambiaron las dimensiones
+      if (canvasSizeChanged) {
+        console.log('Dimensiones del canvas cambiadas, recalculando bloques...');
+        
+        // Recalcular las dimensiones de los ladrillos
+        calculateBrickDimensions();
+        
+        // Reinicializar los ladrillos con las nuevas dimensiones
+        initializeBricks();
+        
+        // Forzar un nuevo frame para actualizar la visualización
+        requestAnimationFrame(draw);
       }
     }
     
+    // Los bloques se inicializan cuando comienza el juego, no antes
+    
     function handleGameInteraction(event) {
-      // Si el juego no ha comenzado, iniciarlo
+      // Si el juego no ha comenzado, inicializarlo y comenzar
       if (!gameStarted) {
+        // Calcular dimensiones de los ladrillos
+        calculateBrickDimensions();
+        
+        // Inicializar los ladrillos
+        initializeBricks();
+        
+        // Inicializar posición de la barra y la bola
+        paddlePositionX = (canvas.width - paddleWidth) / 2;
+        ballPositionX = canvas.width / 2;
+        ballPositionY = canvas.height - 30;
+        
+        // Iniciar el HUD
+        hud.updateLives(3);
+        hud.updateScore(0);
+        
+        // Comenzar el juego
         gameStarted = true;
         draw();
         return;
@@ -244,19 +316,39 @@ import { ArkanoidHUD } from './ArkanoidHUD';
     }
 
     function drawBricks() {
+      // Asegurarse de que bricks tenga elementos antes de intentar dibujarlos
+      if (!bricks.length) {
+        console.log('No hay ladrillos para dibujar. Inicializando...');
+        initializeBricks();
+      }
+      
       for (let columnIndex = 0; columnIndex < brickColumnCount; columnIndex++) {
         for (let rowIndex = 0; rowIndex < brickRowCount; rowIndex++) {
-          if (bricks[columnIndex][rowIndex].status === 1) { // Solo dibujar ladrillos activos
-            const brickPositionX = columnIndex * (brickWidth + brickPadding) + brickOffsetLeft;
-            const brickPositionY = rowIndex * (brickHeight + brickPadding) + brickOffsetTop;
-            bricks[columnIndex][rowIndex].x = brickPositionX;
-            bricks[columnIndex][rowIndex].y = brickPositionY;
+          // Verificar que el ladrillo exista antes de intentar dibujar
+          if (bricks[columnIndex] && bricks[columnIndex][rowIndex] && 
+              bricks[columnIndex][rowIndex].status === 1) {
+            
+            // Si el ladrillo no tiene coordenadas, calcularlas
+            if (bricks[columnIndex][rowIndex].x === undefined || 
+                bricks[columnIndex][rowIndex].y === undefined) {
+              bricks[columnIndex][rowIndex].x = columnIndex * (brickWidth + brickPadding) + brickOffsetLeft;
+              bricks[columnIndex][rowIndex].y = rowIndex * (brickHeight + brickPadding) + brickOffsetTop;
+            }
+            
+            // Usar las coordenadas almacenadas en el objeto ladrillo
+            const brickPositionX = bricks[columnIndex][rowIndex].x;
+            const brickPositionY = bricks[columnIndex][rowIndex].y;
+            
             ctx.beginPath();
             ctx.rect(brickPositionX, brickPositionY, brickWidth, brickHeight);
             // Colores diferentes para cada fila
             const rowColors = ['#FF5252', '#FF4081', '#7C4DFF', '#536DFE', '#18FFFF'];
-            ctx.fillStyle = rowColors[rowIndex];
+            ctx.fillStyle = rowColors[rowIndex % rowColors.length]; // Usar módulo para evitar errores
             ctx.fill();
+            // Añadir borde para mejor visibilidad
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
             ctx.closePath();
           }
         }
@@ -268,6 +360,9 @@ import { ArkanoidHUD } from './ArkanoidHUD';
     function draw() {
       // Si el juego no ha comenzado, mostrar pantalla inicial
       if (!gameStarted) {
+        // Limpiar el canvas por si acaso
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
         // Usar el método de HUD para mostrar la pantalla inicial
         hud.showStartScreen();
         
@@ -299,24 +394,17 @@ import { ArkanoidHUD } from './ArkanoidHUD';
       // Limpiar canvas para el juego activo
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
-      // Si el juego ha comenzado, dibujar todos los elementos
-      drawBricks();
-      drawPaddle();
-      
-      // Calcular factores de escala basados en las dimensiones originales
-      // Esto permite que los elementos se adapten al tamaño actual del canvas
-      const scaleX = canvas.width / 480;
-      const scaleY = canvas.height / 640;
-      
-      // Aplicar transformación para escalar todo el contenido
+      // Aplicar transformación para escalar todo el contenido si es necesario
       ctx.save();
       
-      // Dibujar elementos
+      // Dibujar todos los elementos del juego una sola vez
+      
       drawBricks();
       drawBall();
       drawPaddle();
       hud.drawHUD();
-      collisionDetection();
+      collisionDetection();;
+      
       
       // Restaurar el contexto
       ctx.restore();
