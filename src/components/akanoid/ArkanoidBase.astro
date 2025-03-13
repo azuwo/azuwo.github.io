@@ -1,0 +1,366 @@
+<div class="arkanoid-container">
+  <canvas id="arkanoidCanvas" width="480" height="640"></canvas>
+  <div class="mobile-controls">
+    <button id="leftBtn" aria-label="Mover izquierda">←</button>
+    <button id="rightBtn" aria-label="Mover derecha">→</button>
+  </div>
+</div>
+
+<style>
+  .arkanoid-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  canvas {
+    display: block;
+    background: #111;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .mobile-controls {
+    display: none;
+    justify-content: space-between;
+    margin-top: 20px;
+  }
+
+  .mobile-controls button {
+    width: 80px;
+    height: 80px;
+    font-size: 24px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  @media (max-width: 768px) {
+    .mobile-controls {
+      display: flex;
+    }
+  }
+</style>
+
+<script>
+  import { ArkanoidControls } from './ArkanoidControls';
+import { ArkanoidHUD } from './ArkanoidHUD';
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const canvas = document.getElementById('arkanoidCanvas') as HTMLCanvasElement;
+    const ctx = canvas.getContext('2d');
+    const leftBtn = document.getElementById('leftBtn');
+    const rightBtn = document.getElementById('rightBtn');
+
+    // Configuración del juego
+    const ballRadius = 10;                // Radio de la pelota
+    const paddleHeight = 15;              // Altura de la paleta
+    const paddleWidth = 80;               // Anchura de la paleta
+    const brickRowCount = 5;              // Número de filas de ladrillos
+    const brickColumnCount = 8;           // Número de columnas de ladrillos
+    const brickWidth = 50;                // Anchura de cada ladrillo
+    const brickHeight = 20;               // Altura de cada ladrillo
+    const brickPadding = 10;              // Espacio entre ladrillos
+    const brickOffsetTop = 60;            // Margen superior para los ladrillos
+    const brickOffsetLeft = 30;           // Margen izquierdo para los ladrillos
+    
+    // Variables del juego
+    let ballPositionX = canvas.width / 2;           // Posición X de la pelota
+    let ballPositionY = canvas.height - 30;         // Posición Y de la pelota
+    let ballSpeedX = 4;                            // Velocidad horizontal de la pelota
+    let ballSpeedY = -4;                           // Velocidad vertical de la pelota (negativa = hacia arriba)
+    let paddlePositionX = (canvas.width - paddleWidth) / 2;  // Posición X de la paleta
+    let gameStarted = false;                       // Indica si el juego ha comenzado
+    
+    // Inicializar el HUD y los controles
+    const hud = new ArkanoidHUD(canvas, ctx);
+    const controls = new ArkanoidControls(canvas, leftBtn, rightBtn, paddleWidth);
+    
+    // Crear ladrillos
+    const bricks = [];
+    for (let columnIndex = 0; columnIndex < brickColumnCount; columnIndex++) {
+      bricks[columnIndex] = [];
+      for (let rowIndex = 0; rowIndex < brickRowCount; rowIndex++) {
+        bricks[columnIndex][rowIndex] = { x: 0, y: 0, status: 1 }; // status: 1=activo, 0=destruido
+      }
+    }
+
+    // Evento de inicio del juego
+    canvas.addEventListener('click', () => {
+      if (!gameStarted) {
+        gameStarted = true;
+        draw();
+      }
+    });
+
+    function collisionDetection() {
+      for (let columnIndex = 0; columnIndex < brickColumnCount; columnIndex++) {
+        for (let rowIndex = 0; rowIndex < brickRowCount; rowIndex++) {
+          const currentBrick = bricks[columnIndex][rowIndex];
+          if (currentBrick.status === 1) { // Si el ladrillo está activo
+            if (
+              ballPositionX > currentBrick.x &&
+              ballPositionX < currentBrick.x + brickWidth &&
+              ballPositionY > currentBrick.y &&
+              ballPositionY < currentBrick.y + brickHeight
+            ) {
+              ballSpeedY = -ballSpeedY; // Invertir dirección vertical
+              currentBrick.status = 0;   // Marcar ladrillo como destruido
+              hud.incrementScore();
+              
+              // Cambiar color de la pelota aleatoriamente
+              const randomColor = `hsl(${Math.random() * 360}, 70%, 50%)`;
+              
+              if (hud.getScore() === brickRowCount * brickColumnCount) {
+                // Victoria - todos los ladrillos destruidos
+                hud.showMessage('¡GANASTE!', '#4CAF50');
+                setTimeout(() => document.location.reload(), 2000);
+                return;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    function drawBall() {
+      ctx.beginPath();
+      ctx.arc(ballPositionX, ballPositionY, ballRadius, 0, Math.PI * 2);
+      ctx.fillStyle = '#0095DD';
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    function drawPaddle() {
+      ctx.beginPath();
+      ctx.rect(paddlePositionX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
+      ctx.fillStyle = '#0095DD';
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    function drawBricks() {
+      for (let columnIndex = 0; columnIndex < brickColumnCount; columnIndex++) {
+        for (let rowIndex = 0; rowIndex < brickRowCount; rowIndex++) {
+          if (bricks[columnIndex][rowIndex].status === 1) { // Solo dibujar ladrillos activos
+            const brickPositionX = columnIndex * (brickWidth + brickPadding) + brickOffsetLeft;
+            const brickPositionY = rowIndex * (brickHeight + brickPadding) + brickOffsetTop;
+            bricks[columnIndex][rowIndex].x = brickPositionX;
+            bricks[columnIndex][rowIndex].y = brickPositionY;
+            ctx.beginPath();
+            ctx.rect(brickPositionX, brickPositionY, brickWidth, brickHeight);
+            // Colores diferentes para cada fila
+            const rowColors = ['#FF5252', '#FF4081', '#7C4DFF', '#536DFE', '#18FFFF'];
+            ctx.fillStyle = rowColors[rowIndex];
+            ctx.fill();
+            ctx.closePath();
+          }
+        }
+      }
+    }
+
+    // Las funciones de HUD se han movido a la clase ArkanoidHUD
+
+    function draw() {
+      // Si el juego no ha comenzado, mostrar pantalla inicial
+      if (!gameStarted) {
+        // Usar el método de HUD para mostrar la pantalla inicial
+        hud.showStartScreen();
+        
+        // Continuar la animación
+        requestAnimationFrame(draw);
+        return;
+      }
+      
+      // Limpiar canvas para el juego activo
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Si el juego ha comenzado, dibujar todos los elementos
+      drawBricks();
+      drawPaddle();
+      
+      // Calcular factores de escala basados en las dimensiones originales
+      // Esto permite que los elementos se adapten al tamaño actual del canvas
+      const scaleX = canvas.width / 480;
+      const scaleY = canvas.height / 640;
+      
+      // Aplicar transformación para escalar todo el contenido
+      ctx.save();
+      
+      // Dibujar elementos
+      drawBricks();
+      drawBall();
+      drawPaddle();
+      hud.drawHUD();
+      collisionDetection();
+      
+      // Restaurar el contexto
+      ctx.restore();
+
+      // Lógica de rebote en paredes laterales
+      if (ballPositionX + ballSpeedX > canvas.width - ballRadius || ballPositionX + ballSpeedX < ballRadius) {
+        ballSpeedX = -ballSpeedX; // Invertir dirección horizontal al tocar paredes laterales
+      }
+      
+      // Lógica de rebote en techo y paleta
+      if (ballPositionY + ballSpeedY < ballRadius) {
+        // Rebote en el techo
+        ballSpeedY = -ballSpeedY;
+      } else if (ballPositionY + ballSpeedY > canvas.height - ballRadius - paddleHeight) {
+        // Zona de la paleta
+        if (ballPositionX > paddlePositionX && ballPositionX < paddlePositionX + paddleWidth) {
+          // Rebote en la paleta
+          ballSpeedY = -ballSpeedY;
+          
+          // Ajustar ángulo según donde golpee la pelota en la paleta
+          const paddleHitPosition = (ballPositionX - paddlePositionX) / paddleWidth;
+          ballSpeedX = 8 * (paddleHitPosition - 0.5); // -4 a 4 dependiendo de dónde golpee
+        } else if (ballPositionY + ballSpeedY > canvas.height - ballRadius) {
+          // Pelota perdida - restar vida
+          const remainingLives = hud.decrementLives();
+          if (remainingLives === 0) {
+            // Fin del juego
+            hud.showMessage('GAME OVER', '#FF5252');
+            setTimeout(() => document.location.reload(), 2000);
+            return;
+          } else {
+            // Reiniciar posición para nueva vida
+            ballPositionX = canvas.width / 2;
+            ballPositionY = canvas.height - 30;
+            ballSpeedX = 4;
+            ballSpeedY = -4;
+            paddlePositionX = (canvas.width - paddleWidth) / 2;
+          }
+        }
+      }
+
+      // Actualizar posición de la paleta según los controles
+      paddlePositionX = controls.updatePaddlePosition(paddlePositionX, canvas.width);
+
+      // Actualizar posición de la pelota según su velocidad
+      ballPositionX += ballSpeedX;
+      ballPositionY += ballSpeedY;
+      
+      requestAnimationFrame(draw);
+    }
+
+    // Iniciar el bucle de renderizado
+    draw();
+    
+    // Ajustar tamaño del canvas al redimensionar
+    function resizeCanvas() {
+      const container = canvas.parentElement;
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
+      
+      // Determinar si estamos en modo retrato o paisaje
+      const isPortrait = windowHeight > windowWidth;
+      
+      // Calcular el tamaño máximo manteniendo la proporción original (480x640)
+      const aspectRatio = 480 / 640;
+      let newWidth, newHeight;
+      
+      // Ajustar según la orientación del dispositivo
+      if (isPortrait) {
+        // En modo retrato, usar el ancho completo y ajustar la altura
+        newWidth = windowWidth * 0.95; // 95% del ancho de la ventana
+        newHeight = newWidth / aspectRatio;
+        
+        // Si la altura calculada es mayor que la ventana, ajustar para que quepa
+        if (newHeight > windowHeight * 0.95) {
+          newHeight = windowHeight * 0.95;
+          newWidth = newHeight * aspectRatio;
+        }
+      } else {
+        // En modo paisaje, usar la altura y ajustar el ancho
+        newHeight = windowHeight * 0.95; // 95% de la altura de la ventana
+        newWidth = newHeight * aspectRatio;
+        
+        // Si el ancho calculado es mayor que la ventana, ajustar para que quepa
+        if (newWidth > windowWidth * 0.95) {
+          newWidth = windowWidth * 0.95;
+          newHeight = newWidth / aspectRatio;
+        }
+      }
+      
+      // Aplicar los nuevos tamaños al contenedor y al canvas
+      container.style.width = `${newWidth}px`;
+      container.style.height = `${newHeight}px`;
+      canvas.style.width = '100%';
+      canvas.style.height = '100%';
+      
+      // Centrar el contenedor en la página
+      container.style.margin = '0 auto';
+      container.style.position = 'relative';
+      
+      // Ajustar los botones de control táctil
+      const leftBtn = document.getElementById('leftBtn');
+      const rightBtn = document.getElementById('rightBtn');
+      
+      if (leftBtn && rightBtn) {
+        // Ajustar el tamaño de los botones según la orientación
+        const buttonSize = isPortrait ? '60px' : '80px';
+        leftBtn.style.width = buttonSize;
+        leftBtn.style.height = buttonSize;
+        rightBtn.style.width = buttonSize;
+        rightBtn.style.height = buttonSize;
+        
+        // Ajustar la posición de los botones
+        const buttonBottom = isPortrait ? '20px' : '40px';
+        leftBtn.style.bottom = buttonBottom;
+        rightBtn.style.bottom = buttonBottom;
+      }
+      
+      // Guardar las dimensiones actuales antes de redimensionar
+      const oldWidth = canvas.width;
+      const oldHeight = canvas.height;
+      
+      // Actualizar las dimensiones reales del canvas
+      canvas.width = Math.floor(newWidth);
+      canvas.height = Math.floor(newHeight);
+      
+      // Ajustar posiciones de elementos del juego si es necesario
+      // (Solo si el juego ya ha comenzado)
+      if (gameStarted && oldWidth > 0 && oldHeight > 0) {
+        // Calcular factores de escala
+        const scaleX = canvas.width / oldWidth;
+        const scaleY = canvas.height / oldHeight;
+        
+        // Recalcular posiciones proporcionales
+        paddlePositionX = paddlePositionX * scaleX;
+        ballPositionX = ballPositionX * scaleX;
+        ballPositionY = ballPositionY * scaleY;
+        
+        // No modificamos las constantes, solo ajustamos las posiciones
+        
+        // Recalcular la posición de los bloques sin modificar las constantes
+        // Esto asegura que los bloques se mantengan en la posición correcta
+        // cuando la ventana cambia de tamaño
+        
+        // Redibujar el juego con las nuevas dimensiones
+        draw();
+      }
+      
+      // Actualizar el HUD para que se ajuste al nuevo tamaño
+      if (hud) {
+        hud.updateCanvasSize(canvas.width, canvas.height);
+      }
+    }
+    
+    // Escuchar eventos de cambio de tamaño y orientación
+    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('orientationchange', resizeCanvas);
+    
+    // Inicializar el tamaño del canvas
+    resizeCanvas();
+  });
+</script> 
