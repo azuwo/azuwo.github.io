@@ -80,6 +80,7 @@ import { ArkanoidHUD } from './ArkanoidHUD';
     let ballSpeedY = -4;                           // Velocidad vertical de la pelota (negativa = hacia arriba)
     let paddlePositionX = (canvas.width - paddleWidth) / 2;  // Posición X de la paleta
     let gameStarted = false;                       // Indica si el juego ha comenzado
+    let gameOver = false;                          // Indica si el juego ha terminado
     
     // Inicializar el HUD y los controles
     const hud = new ArkanoidHUD(canvas, ctx);
@@ -94,13 +95,48 @@ import { ArkanoidHUD } from './ArkanoidHUD';
       }
     }
 
-    // Evento de inicio del juego
-    canvas.addEventListener('click', () => {
+    // Función para reiniciar el juego
+    function resetGame() {
+      // Reiniciar variables del juego
+      ballPositionX = canvas.width / 2;
+      ballPositionY = canvas.height - 30;
+      ballSpeedX = 4;
+      ballSpeedY = -4;
+      paddlePositionX = (canvas.width - paddleWidth) / 2;
+      gameOver = false;
+      
+      // Reiniciar ladrillos
+      for (let columnIndex = 0; columnIndex < brickColumnCount; columnIndex++) {
+        for (let rowIndex = 0; rowIndex < brickRowCount; rowIndex++) {
+          bricks[columnIndex][rowIndex].status = 1;
+        }
+      }
+      
+      // Reiniciar HUD
+      hud.updateScore(0);
+      hud.updateLives(3);
+    }
+    
+    // Eventos de interacción para iniciar o reiniciar el juego
+    canvas.addEventListener('click', handleGameInteraction);
+    document.addEventListener('keydown', handleGameInteraction);
+    canvas.addEventListener('touchstart', handleGameInteraction);
+    
+    function handleGameInteraction(event) {
+      // Si el juego no ha comenzado, iniciarlo
       if (!gameStarted) {
         gameStarted = true;
         draw();
+        return;
       }
-    });
+      
+      // Si el juego terminó (game over), reiniciarlo
+      if (gameOver) {
+        resetGame();
+        gameStarted = true;
+        draw();
+      }
+    }
 
     function collisionDetection() {
       for (let columnIndex = 0; columnIndex < brickColumnCount; columnIndex++) {
@@ -122,8 +158,8 @@ import { ArkanoidHUD } from './ArkanoidHUD';
               
               if (hud.getScore() === brickRowCount * brickColumnCount) {
                 // Victoria - todos los ladrillos destruidos
-                hud.showMessage('¡GANASTE!', '#4CAF50');
-                setTimeout(() => document.location.reload(), 2000);
+                gameOver = true;
+                hud.showMessage('¡GANASTE! - Toca para reiniciar', '#4CAF50');
                 return;
               }
             }
@@ -177,6 +213,16 @@ import { ArkanoidHUD } from './ArkanoidHUD';
         hud.showStartScreen();
         
         // Continuar la animación
+        requestAnimationFrame(draw);
+        return;
+      }
+      
+      // Verificar si el juego está en estado de game over
+      if (gameOver) {
+        // Mantener el mensaje de game over o victoria
+        // (ya fue mostrado cuando se estableció gameOver = true)
+        
+        // Continuar la animación para poder detectar interacción del usuario
         requestAnimationFrame(draw);
         return;
       }
@@ -239,8 +285,8 @@ import { ArkanoidHUD } from './ArkanoidHUD';
           const remainingLives = hud.decrementLives();
           if (remainingLives === 0) {
             // Fin del juego
-            hud.showMessage('GAME OVER', '#FF5252');
-            setTimeout(() => document.location.reload(), 2000);
+            gameOver = true;
+            hud.showMessage('GAME OVER - Toca para reiniciar', '#FF5252');
             return;
           } else {
             // Reiniciar posición para nueva vida
