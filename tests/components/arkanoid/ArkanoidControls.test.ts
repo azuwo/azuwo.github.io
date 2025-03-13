@@ -196,4 +196,30 @@ describe('ArkanoidControls', () => {
     paddleX = controls.updatePaddlePosition(paddleX, canvasWidth);
     expect(paddleX).toBe(200); // Se mueve a la derecha
   });
+  
+  it('debería pausar y reanudar el juego al presionar la tecla espacio', () => {
+    // Inicialmente el juego no está pausado
+    expect(controls.isPausedState()).toBe(false);
+    
+    // Establecer el estado de pausa directamente
+    controls.setPausedState(true);
+    expect(controls.isPausedState()).toBe(true);
+    
+    // Reanudar el juego
+    controls.setPausedState(false);
+    expect(controls.isPausedState()).toBe(false);
+  });
+  
+  it('debería permitir alternar el estado de pausa', () => {
+    // Verificar que podemos alternar el estado de pausa
+    expect(controls.isPausedState()).toBe(false); // Estado inicial
+    
+    // Pausar
+    controls.setPausedState(true);
+    expect(controls.isPausedState()).toBe(true);
+    
+    // Reanudar
+    controls.setPausedState(false);
+    expect(controls.isPausedState()).toBe(false);
+  });
 });

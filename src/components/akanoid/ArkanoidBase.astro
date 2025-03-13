@@ -181,6 +181,16 @@ import { ArkanoidHUD } from './ArkanoidHUD';
         return;
       }
       
+      // Verificar si el juego está pausado
+      if (controls.isPausedState() && gameStarted) {
+        // Mostrar mensaje de pausa
+        hud.showMessage('PAUSA', '#FFC107');
+        
+        // Continuar la animación para poder detectar cuando se reanude
+        requestAnimationFrame(draw);
+        return;
+      }
+      
       // Limpiar canvas para el juego activo
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
@@ -246,9 +256,11 @@ import { ArkanoidHUD } from './ArkanoidHUD';
       // Actualizar posición de la paleta según los controles
       paddlePositionX = controls.updatePaddlePosition(paddlePositionX, canvas.width);
 
-      // Actualizar posición de la pelota según su velocidad
-      ballPositionX += ballSpeedX;
-      ballPositionY += ballSpeedY;
+      // Actualizar posición de la pelota según su velocidad (solo si no está pausado)
+      if (!controls.isPausedState()) {
+        ballPositionX += ballSpeedX;
+        ballPositionY += ballSpeedY;
+      }
       
       requestAnimationFrame(draw);
     }

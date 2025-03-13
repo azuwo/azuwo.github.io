@@ -13,6 +13,8 @@ export class ArkanoidControls {
   // Estado de los controles
   private rightArrowPressed = false;
   private leftArrowPressed = false;
+  private isPaused = false;
+  private spacePressed = false;
   
   /**
    * Constructor de la clase de controles
@@ -71,6 +73,12 @@ export class ArkanoidControls {
       this.rightArrowPressed = true;
     } else if (e.key === 'Left' || e.key === 'ArrowLeft') {
       this.leftArrowPressed = true;
+    } else if (e.key === ' ' || e.key === 'Spacebar') {
+      // Evitar múltiples pulsaciones manteniendo la tecla
+      if (!this.spacePressed) {
+        this.spacePressed = true;
+        this.isPaused = !this.isPaused; // Alternar estado de pausa
+      }
     }
   }
   
@@ -82,6 +90,8 @@ export class ArkanoidControls {
       this.rightArrowPressed = false;
     } else if (e.key === 'Left' || e.key === 'ArrowLeft') {
       this.leftArrowPressed = false;
+    } else if (e.key === ' ' || e.key === 'Spacebar') {
+      this.spacePressed = false;
     }
   }
   
@@ -155,6 +165,20 @@ export class ArkanoidControls {
    */
   isLeftPressed(): boolean {
     return this.leftArrowPressed;
+  }
+  
+  /**
+   * Comprueba si el juego está pausado
+   */
+  isPausedState(): boolean {
+    return this.isPaused;
+  }
+  
+  /**
+   * Establece el estado de pausa
+   */
+  setPausedState(paused: boolean): void {
+    this.isPaused = paused;
   }
   
   /**
