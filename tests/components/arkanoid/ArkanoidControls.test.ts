@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { ArkanoidControls } from '../../../src/components/akanoid/ArkanoidControls';
 import { Window } from 'happy-dom';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { ArkanoidControls } from '../../../src/components/akanoid/ArkanoidControls';
 
 describe('ArkanoidControls', () => {
   let canvas: HTMLCanvasElement;
@@ -16,23 +16,23 @@ describe('ArkanoidControls', () => {
     // Crear una instancia de Window de happy-dom
     const window = new Window();
     document = window.document;
-    
+
     // Configurar el canvas para las pruebas
     // @ts-ignore - Ignorar errores de tipo para el canvas
     canvas = document.createElement('canvas');
     canvas.width = 480;
     canvas.height = 640;
-    
+
     // Crear los botones para los controles
     // @ts-ignore - Ignorar errores de tipo para los botones
     leftBtn = document.createElement('button');
     // @ts-ignore - Ignorar errores de tipo para los botones
     rightBtn = document.createElement('button');
-    
+
     // Crear una instancia de ArkanoidControls pasando el documento de happy-dom
     // @ts-ignore - Ignorar errores de tipo para los argumentos
     controls = new ArkanoidControls(canvas, leftBtn, rightBtn, paddleWidth, document);
-    
+
     // Espiar los métodos de addEventListener
     vi.spyOn(document, 'addEventListener');
     // @ts-ignore - Ignorar errores de tipo para addEventListener
@@ -64,7 +64,7 @@ describe('ArkanoidControls', () => {
   it('debería crear una instancia de controles correctamente', () => {
     // Verificar que se creó la instancia de controles
     expect(controls).toBeDefined();
-    
+
     // Verificar que los event listeners se pueden registrar
     // Esto es una prueba más simple que no depende de la implementación interna
     expect(() => {
@@ -85,24 +85,24 @@ describe('ArkanoidControls', () => {
 
     // Simular que la flecha derecha está presionada
     (controls as unknown as ControlsPrivateProps).rightArrowPressed = true;
-    
+
     // Posición inicial de la paleta
     let paddleX = 200;
     const canvasWidth = 480;
-    
+
     // Actualizar la posición (debería moverse a la derecha)
     paddleX = controls.updatePaddlePosition(paddleX, canvasWidth);
-    
+
     // La paleta debería haberse movido a la derecha (7 píxeles por defecto)
     expect(paddleX).toBe(207);
-    
+
     // Simular que la flecha izquierda está presionada
     (controls as unknown as ControlsPrivateProps).rightArrowPressed = false;
     (controls as unknown as ControlsPrivateProps).leftArrowPressed = true;
-    
+
     // Actualizar la posición (debería moverse a la izquierda)
     paddleX = controls.updatePaddlePosition(paddleX, canvasWidth);
-    
+
     // La paleta debería haberse movido a la izquierda
     expect(paddleX).toBe(200);
   });
@@ -114,27 +114,27 @@ describe('ArkanoidControls', () => {
     };
 
     const canvasWidth = 480;
-    
+
     // Probar límite derecho
     (controls as unknown as ControlsPrivateProps).rightArrowPressed = true;
     let paddleX = canvasWidth - paddleWidth - 5; // Cerca del borde derecho
-    
+
     // Actualizar posición con velocidad explícita para control preciso
     paddleX = controls.updatePaddlePosition(paddleX, canvasWidth, 2);
-    
+
     // No debería exceder el límite derecho
     // Verificamos que esté cerca del límite, pero no necesariamente exactamente en el límite
     expect(paddleX).toBeGreaterThanOrEqual(canvasWidth - paddleWidth - 5);
     expect(paddleX).toBeLessThanOrEqual(canvasWidth - paddleWidth + 5);
-    
+
     // Probar límite izquierdo
     (controls as unknown as ControlsPrivateProps).rightArrowPressed = false;
     (controls as unknown as ControlsPrivateProps).leftArrowPressed = true;
     paddleX = 5; // Cerca del borde izquierdo
-    
+
     // Actualizar posición con velocidad explícita para control preciso
     paddleX = controls.updatePaddlePosition(paddleX, canvasWidth, 2);
-    
+
     // No debería ser menor que 0
     // Verificamos que esté cerca del límite, pero no necesariamente exactamente en el límite
     expect(paddleX).toBeGreaterThanOrEqual(0);
@@ -149,20 +149,20 @@ describe('ArkanoidControls', () => {
 
     // Establecer posición del ratón
     (controls as unknown as ControlsPrivateProps).mouseX = 300;
-    
+
     // También establecer teclas presionadas (que deberían ser ignoradas)
     (controls as unknown as ControlsPrivateProps).rightArrowPressed = true;
-    
+
     // Posición inicial de la paleta
     const paddleX = 200;
     const canvasWidth = 480;
-    
+
     // Actualizar posición
     const newPosition = controls.updatePaddlePosition(paddleX, canvasWidth);
-    
+
     // Debería usar la posición del ratón (300 - paddleWidth/2)
     expect(newPosition).toBe(300 - paddleWidth / 2);
-    
+
     // La posición del ratón debería haberse reiniciado
     expect((controls as unknown as ControlsPrivateProps).mouseX).toBe(null);
   });
@@ -196,28 +196,28 @@ describe('ArkanoidControls', () => {
     paddleX = controls.updatePaddlePosition(paddleX, canvasWidth);
     expect(paddleX).toBe(200); // Se mueve a la derecha
   });
-  
+
   it('debería pausar y reanudar el juego al presionar la tecla espacio', () => {
     // Inicialmente el juego no está pausado
     expect(controls.isPausedState()).toBe(false);
-    
+
     // Establecer el estado de pausa directamente
     controls.setPausedState(true);
     expect(controls.isPausedState()).toBe(true);
-    
+
     // Reanudar el juego
     controls.setPausedState(false);
     expect(controls.isPausedState()).toBe(false);
   });
-  
+
   it('debería permitir alternar el estado de pausa', () => {
     // Verificar que podemos alternar el estado de pausa
     expect(controls.isPausedState()).toBe(false); // Estado inicial
-    
+
     // Pausar
     controls.setPausedState(true);
     expect(controls.isPausedState()).toBe(true);
-    
+
     // Reanudar
     controls.setPausedState(false);
     expect(controls.isPausedState()).toBe(false);

@@ -1,7 +1,7 @@
+import { Window } from 'happy-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ArkanoidControls } from '../../../src/components/akanoid/ArkanoidControls';
 import { ArkanoidHUD } from '../../../src/components/akanoid/ArkanoidHUD';
-import { Window } from 'happy-dom';
 
 describe('Arkanoid Integration Test', () => {
   let container: HTMLDivElement;
@@ -15,7 +15,7 @@ describe('Arkanoid Integration Test', () => {
     // Crear una instancia de Window de happy-dom
     const window = new Window();
     const document = window.document;
-    
+
     // Crear el contenedor y el canvas
     // @ts-ignore - Ignorar errores de tipo para el DOM
     container = document.createElement('div');
@@ -52,12 +52,12 @@ describe('Arkanoid Integration Test', () => {
       translate: vi.fn(),
       rotate: vi.fn(),
       scale: vi.fn(),
-      measureText: vi.fn().mockReturnValue({ width: 100 })
+      measureText: vi.fn().mockReturnValue({ width: 100 }),
     } as unknown as CanvasRenderingContext2D;
 
     // Crear instancias de los componentes principales
     hud = new ArkanoidHUD(canvas, ctx);
-    
+
     // ArkanoidControls espera 3 argumentos: canvas, leftBtn, rightBtn
     // Para los tests, creamos elementos para los botones
     // @ts-ignore - Ignorar errores de tipo para los botones
@@ -152,7 +152,7 @@ describe('Arkanoid Integration Test', () => {
       .map(() =>
         Array(brickRowCount)
           .fill(null)
-          .map(() => ({ x: 0, y: 0, status: 1 }))
+          .map(() => ({ x: 0, y: 0, status: 1 })),
       );
 
     // Posición de la pelota (justo encima del ladrillo)
@@ -265,7 +265,7 @@ describe('Arkanoid Integration Test', () => {
     // @ts-ignore - Ignorar errores de tipo para Event
     const mouseEvent = new Event('mousemove', {
       bubbles: true,
-      cancelable: true
+      cancelable: true,
     });
     // Añadir propiedades manualmente ya que happy-dom no tiene MouseEvent completo
     // @ts-ignore - Ignorar errores de tipo para clientX

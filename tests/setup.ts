@@ -1,12 +1,12 @@
-// Configuración global para los tests
-import { vi, beforeAll, afterAll } from 'vitest';
 import { Window } from 'happy-dom';
+// Configuración global para los tests
+import { afterAll, beforeAll, vi } from 'vitest';
 
 // Configurar el entorno global para simular el navegador
 const happyDomWindow = new Window({
   url: 'http://localhost:4321',
   width: 1024,
-  height: 768
+  height: 768,
 });
 
 // Exponer el objeto global para las pruebas
@@ -46,14 +46,14 @@ HTMLCanvasElement.prototype.getContext = () => {
     translate: vi.fn(),
     rotate: vi.fn(),
     scale: vi.fn(),
-    measureText: vi.fn().mockReturnValue({ width: 100 })
+    measureText: vi.fn().mockReturnValue({ width: 100 }),
   };
 };
 
 // Mock para el objeto window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: vi.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -81,9 +81,12 @@ Element.prototype.getBoundingClientRect = vi.fn().mockReturnValue({
 });
 
 // Mock para requestAnimationFrame
-vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback): number => {
-  return setTimeout(() => callback(0), 0) as unknown as number;
-});
+vi.stubGlobal(
+  'requestAnimationFrame',
+  (callback: FrameRequestCallback): number => {
+    return setTimeout(() => callback(0), 0) as unknown as number;
+  },
+);
 
 // Limpiar mocks después de cada test
 beforeAll(() => {

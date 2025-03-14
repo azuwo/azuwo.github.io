@@ -9,23 +9,38 @@
       "recommended": true,
       "correctness": {
         "noUnusedVariables": "error",
-        "noUndeclaredVariables": "error"
+        "noUndeclaredVariables": "error",
+        "useExhaustiveDependencies": "error"
       },
       "suspicious": {
         "noConsoleLog": "warn",
-        "noEmptyInterface": "error"
+        "noEmptyInterface": "error",
+        "noExplicitAny": "error",
+        "noMisrefactoredShorthandAssign": "error"
       },
       "style": {
         "useConst": "error",
         "noNegationElse": "error",
-        "useTemplate": "error"
+        "useTemplate": "error",
+        "noParameterAssign": "error",
+        "noShoutyConstants": "error",
+        "useImportType": "error",
+        "useShorthandArrayType": "error"
       },
       "complexity": {
         "noForEach": "warn",
-        "useOptionalChain": "error"
+        "useOptionalChain": "error",
+        "noBannedTypes": "error",
+        "noStaticOnlyClass": "error",
+        "noUselessConstructor": "error"
       },
       "performance": {
-        "noDelete": "error"
+        "noDelete": "error",
+        "noAccumulatingSpread": "warn"
+      },
+      "a11y": {
+        "useKeyWithClickEvents": "error",
+        "useKeyWithMouseEvents": "error"
       },
       "nursery": {}
     }
@@ -43,7 +58,6 @@
     "formatter": {
       "quoteStyle": "single",
       "jsxQuoteStyle": "double",
-      "trailingCommas": "es5",
       "semicolons": "always",
       "arrowParentheses": "always",
       "bracketSpacing": true,
@@ -90,6 +104,30 @@
       "include": ["**/pages/**", "**/components/**"],
       "formatter": {
         "lineWidth": 100
+      }
+    },
+    {
+      "include": ["**/core/domain/**", "**/core/ports/**"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noStaticOnlyClass": "error",
+            "noUselessConstructor": "error"
+          },
+          "style": {
+            "noParameterAssign": "error"
+          }
+        }
+      }
+    },
+    {
+      "include": ["**/adapters/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noNamespace": "error"
+          }
+        }
       }
     }
   ]

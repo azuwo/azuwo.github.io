@@ -3,7 +3,7 @@
  * Siguiendo arquitectura hexagonal y enfoque funcional
  */
 
-import type { Ball, Brick, Paddle } from "../../domain/entities/arkanoid";
+import type { Ball, Brick, Paddle } from '../../domain/entities/arkanoid';
 
 export interface CanvasRenderer {
   clear: () => void;
@@ -24,15 +24,13 @@ export interface CollisionDetector {
     ball: Ball,
     bricks: Brick[][],
     brickWidth: number,
-    brickHeight: number
+    brickHeight: number,
   ) => { collided: boolean; colIndex: number; rowIndex: number } | null;
 }
 
 export interface DimensionsCalculator {
   calculateCanvasDimensions: () => { width: number; height: number };
-  calculateBrickDimensions: (
-    canvasWidth: number
-  ) => {
+  calculateBrickDimensions: (canvasWidth: number) => {
     brickColumnCount: number;
     brickWidth: number;
     brickOffsetLeft: number;
@@ -45,11 +43,8 @@ export interface EventHandler {
     moveRight: () => void,
     stopMoving: () => void,
     handleInteraction: () => void,
-    handleResize: () => void
+    handleResize: () => void,
   ) => void;
-  updatePaddlePosition: (
-    currentX: number,
-    canvasWidth: number
-  ) => number;
+  updatePaddlePosition: (currentX: number, canvasWidth: number) => number;
   isPaused: () => boolean;
 }

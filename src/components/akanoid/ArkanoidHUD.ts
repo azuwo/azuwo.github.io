@@ -45,7 +45,7 @@ export class ArkanoidHUD {
     // Restaurar alineación de texto para no afectar otros textos
     this.ctx.textAlign = 'start';
   }
-  
+
   /**
    * Muestra la pantalla inicial con un mensaje
    * @param message Mensaje a mostrar (opcional)
@@ -53,11 +53,11 @@ export class ArkanoidHUD {
   showStartScreen(message = 'Toca para comenzar'): void {
     // Limpiar el canvas
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    
+
     // Fondo azul claro para la pantalla inicial
     this.ctx.fillStyle = 'rgba(0, 149, 221, 0.1)';
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-    
+
     // Mostrar mensaje de inicio
     this.showMessage(message, '#0095DD');
   }
@@ -119,7 +119,7 @@ export class ArkanoidHUD {
     this.drawScore();
     this.drawLives();
   }
-  
+
   /**
    * Actualiza las dimensiones del canvas para ajustar el HUD
    * @param width Nuevo ancho del canvas
@@ -129,14 +129,14 @@ export class ArkanoidHUD {
     // Actualizar las referencias de tamaño del canvas
     this.canvas.width = width;
     this.canvas.height = height;
-    
+
     // Ajustar el tamaño de la fuente según las dimensiones del canvas
     const baseFontSize = Math.max(12, Math.min(16, width / 30));
     const messageFontSize = Math.max(24, Math.min(36, width / 15));
-    
+
     // Actualizar estilos de texto para score y vidas
     this.ctx.font = `${baseFontSize}px Arial`;
-    
+
     // Actualizar estilos para mensajes
     this.ctx.font = `${messageFontSize}px Arial`;
   }

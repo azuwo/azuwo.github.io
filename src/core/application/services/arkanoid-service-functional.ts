@@ -51,7 +51,7 @@ const FRAME_TIME = 1000 / TARGET_FPS; // tiempo entre frames en ms
  * Utiliza closures para mantener el estado encapsulado
  */
 export function createArkanoidService(
-  dependencies: Dependencies
+  dependencies: Dependencies,
 ): GameUseCases {
   // Estado encapsulado mediante closure
   const state: GameServiceState = {
@@ -119,25 +119,25 @@ export function createArkanoidService(
         };
       }
     }
-    
+
     // Marcar los ladrillos como modificados para que se vuelvan a renderizar
     state.renderingData.bricksModified = true;
     state.renderingData.staticElementsRendered = false;
   });
-  
+
   // Crear una versión throttled de la función de actualización para mantener un FPS constante
   const throttledUpdate = throttle((timestamp: number) => {
     // Calcular el tiempo transcurrido desde el último frame
     const deltaTime = timestamp - state.lastFrameTime;
-    
+
     // Actualizar solo si ha pasado suficiente tiempo y el juego no está pausado
     if (deltaTime >= FRAME_TIME && !dependencies.eventHandler.isPaused()) {
       // Actualizar posiciones
       updatePositions();
-      
+
       // Detectar colisiones
       detectCollisions();
-      
+
       // Actualizar el tiempo del último frame
       state.lastFrameTime = timestamp;
     }
@@ -147,9 +147,9 @@ export function createArkanoidService(
     // Actualizar la posición de la paleta según los controles
     const newPaddleX = dependencies.eventHandler.updatePaddlePosition(
       state.paddle.x,
-      state.dimensions.canvasWidth
+      state.dimensions.canvasWidth,
     );
-    
+
     // Solo actualizar si cambió la posición para evitar re-renders innecesarios
     if (newPaddleX !== state.paddle.x) {
       state.paddle.x = newPaddleX;
@@ -165,7 +165,7 @@ export function createArkanoidService(
     if (
       dependencies.collisionDetector.detectWallCollision(
         state.ball,
-        state.dimensions.canvasWidth
+        state.dimensions.canvasWidth,
       )
     ) {
       state.ball.speedX = -state.ball.speedX;
@@ -180,7 +180,7 @@ export function createArkanoidService(
     if (
       dependencies.collisionDetector.detectPaddleCollision(
         state.ball,
-        state.paddle
+        state.paddle,
       )
     ) {
       state.ball.speedY = -state.ball.speedY;
@@ -195,7 +195,7 @@ export function createArkanoidService(
     if (
       dependencies.collisionDetector.detectBottomCollision(
         state.ball,
-        state.dimensions.canvasHeight
+        state.dimensions.canvasHeight,
       )
     ) {
       state.gameState.lives--;
@@ -218,16 +218,16 @@ export function createArkanoidService(
       state.ball,
       state.bricks,
       state.dimensions.brickWidth,
-      state.dimensions.brickHeight
+      state.dimensions.brickHeight,
     );
 
-    if (collision && collision.collided) {
+    if (collision?.collided) {
       // Cambiar dirección de la pelota
       state.ball.speedY = -state.ball.speedY;
 
       // Marcar el ladrillo como inactivo (desaparece)
       state.bricks[collision.colIndex][collision.rowIndex].status = 0;
-      
+
       // Marcar que los ladrillos han sido modificados para re-renderizar
       state.renderingData.bricksModified = true;
 
@@ -277,7 +277,7 @@ export function createArkanoidService(
         useCases.moveRight,
         useCases.stopMoving,
         useCases.handleInteraction,
-        useCases.handleResize
+        useCases.handleResize,
       );
     },
 
@@ -293,7 +293,7 @@ export function createArkanoidService(
       // Recalcular dimensiones de los ladrillos
       const brickDimensions =
         dependencies.dimensionsCalculator.calculateBrickDimensions(
-          state.dimensions.canvasWidth
+          state.dimensions.canvasWidth,
         );
       Object.assign(state.dimensions, brickDimensions);
 
@@ -307,7 +307,7 @@ export function createArkanoidService(
       state.gameState.score = 0;
       state.gameState.lives = 3;
       state.lastFrameTime = performance.now();
-      
+
       // Resetear datos de renderizado
       state.renderingData.bricksModified = true;
       state.renderingData.staticElementsRendered = false;
@@ -339,12 +339,12 @@ export function createArkanoidService(
     updateGameFrame: () => {
       // Obtener el timestamp actual para controlar el throttling
       const timestamp = performance.now();
-      
+
       // Si el juego está pausado, solo mostrar mensaje sin actualizaciones de lógica
       if (dependencies.eventHandler.isPaused()) {
         dependencies.renderer.showMessage('PAUSA', '#FFC107');
         state.animationFrameId = requestAnimationFrame(
-          useCases.updateGameFrame
+          useCases.updateGameFrame,
         );
         return;
       }
@@ -357,34 +357,34 @@ export function createArkanoidService(
         ) {
           dependencies.renderer.showMessage(
             '¡GANASTE! - Toca para reiniciar',
-            '#4CAF50'
+            '#4CAF50',
           );
         } else {
           dependencies.renderer.showMessage(
             'GAME OVER - Toca para reiniciar',
-            '#FF5252'
+            '#FF5252',
           );
         }
         state.animationFrameId = requestAnimationFrame(
-          useCases.updateGameFrame
+          useCases.updateGameFrame,
         );
         return;
       }
 
       // Solo limpiar el canvas cuando es necesario (optimización de rendimiento)
       dependencies.renderer.clear();
-      
+
       // Estrategia de renderizado optimizada
       // Solo redibujar los ladrillos si han cambiado (colisiones)
       if (state.renderingData.bricksModified) {
         dependencies.renderer.drawBricks(state.bricks);
         state.renderingData.bricksModified = false;
       }
-      
+
       // Siempre dibujar elementos dinámicos (pelota y paleta)
       dependencies.renderer.drawBall(state.ball);
       dependencies.renderer.drawPaddle(state.paddle);
-      
+
       // UI estático que no cambia con frecuencia
       dependencies.renderer.drawScore(state.gameState.score);
       dependencies.renderer.drawLives(state.gameState.lives);
@@ -394,7 +394,11 @@ export function createArkanoidService(
       throttledUpdate(timestamp);
 
       // Continuar el ciclo de animación
-      state.animationFrameId = requestAnimationFrame(useCases.updateGameFrame);
+      // Usar globalThis para compatibilidad con entornos de prueba
+      const requestFrame = globalThis.requestAnimationFrame || ((callback: FrameRequestCallback) => {
+        return setTimeout(callback, 16, Date.now()) as unknown as number;
+      });
+      state.animationFrameId = requestFrame(useCases.updateGameFrame);
     },
 
     handleInteraction: () => {

@@ -3,9 +3,13 @@
  * Optimizado con memoización y técnicas funcionales
  */
 
-import type { Ball, Brick, Paddle } from "../../../core/domain/entities/arkanoid";
-import type { CollisionDetector } from "../../../core/ports/out/arkanoid-ports";
-import { memoize } from "../../../core/utils/functional";
+import type {
+  Ball,
+  Brick,
+  Paddle,
+} from '../../../core/domain/entities/arkanoid';
+import type { CollisionDetector } from '../../../core/ports/out/arkanoid-ports';
+import { memoize } from '../../../core/utils/functional';
 
 /**
  * Factory function para crear un detector de colisiones
@@ -18,7 +22,7 @@ export const createCollisionDetector = (): CollisionDetector => {
       left: ball.x - ball.radius,
       right: ball.x + ball.radius,
       top: ball.y - ball.radius,
-      bottom: ball.y + ball.radius
+      bottom: ball.y + ball.radius,
     };
   });
 
@@ -41,7 +45,7 @@ export const createCollisionDetector = (): CollisionDetector => {
 
     detectPaddleCollision: (ball: Ball, paddle: Paddle): boolean => {
       const bounds = calculateBallBounds(ball);
-      
+
       return (
         bounds.bottom >= paddle.y &&
         bounds.top <= paddle.y + paddle.height &&
@@ -54,16 +58,16 @@ export const createCollisionDetector = (): CollisionDetector => {
       ball: Ball,
       bricks: Brick[][],
       brickWidth: number,
-      brickHeight: number
+      brickHeight: number,
     ) => {
       // Implementación optimizada con early returns
       const bounds = calculateBallBounds(ball);
-      
+
       // Buscamos algún ladrillo activo con el que colisione la bola
       for (let colIndex = 0; colIndex < bricks.length; colIndex++) {
         for (let rowIndex = 0; rowIndex < bricks[colIndex].length; rowIndex++) {
           const brick = bricks[colIndex][rowIndex];
-          
+
           // Verificar primero si el ladrillo está activo (status=1)
           if (brick.status === 1) {
             // Verificar colisión entre bola y ladrillo
@@ -78,9 +82,9 @@ export const createCollisionDetector = (): CollisionDetector => {
           }
         }
       }
-      
+
       // No se detectó colisión
       return null;
-    }
+    },
   };
 };
