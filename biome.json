@@ -27,7 +27,7 @@
       "performance": {
         "noDelete": "error"
       },
-      "nursery": { }
+      "nursery": {}
     }
   },
   "formatter": {

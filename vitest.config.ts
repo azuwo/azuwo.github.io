@@ -11,20 +11,20 @@ export default defineConfig({
         // Esto asegura que el DOM esté disponible en las pruebas
         url: 'http://localhost:4321',
         width: 1024,
-        height: 768
-      }
+        height: 768,
+      },
     },
     // Asegurar que se incluye el DOM en los tests
     browser: {
       enabled: true,
       name: 'happy-dom',
-      provider: 'happy-dom'
+      provider: 'happy-dom',
     },
     // Ignorar errores relacionados con el canvas
     onConsoleLog(log) {
       if (log.includes('canvas') || log.includes('Canvas')) {
         return false;
       }
-    }
+    },
   },
 });
